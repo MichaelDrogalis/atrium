@@ -95,9 +95,6 @@
 (with-pre-hook! #'stand-by
   (fn [payload ch] (println "On stand-by")))
 
-(with-pre-hook! #'trigger-masterless-rendezvous
-  (fn [e id ch] (println id "found master with no heart beat")))
-
 (with-pre-hook! #'elect-self
   (fn [id version] (println id "is attempting to become the master")))
 
