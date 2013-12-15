@@ -8,6 +8,12 @@
 
 (def pulse-frequency 800)
 
+(defn serialize-edn [x]
+  (.getBytes (pr-str x)))
+
+(defn deserialize-edn [x]
+  (read-string (String. x "UTF-8")))
+
 (def client (zk/connect "127.0.0.1:2181"))
 
 (def master-node "/master")
@@ -22,12 +28,6 @@
   (zk/create client (pulse-node id))
   (let [version (:version (zk/exists client (pulse-node id)))]
     (zk/set-data client (pulse-node id) (serialize-edn {:pulse 0}) version)))
-
-(defn serialize-edn [x]
-  (.getBytes (pr-str x)))
-
-(defn deserialize-edn [x]
-  (read-string (String. x "UTF-8")))
 
 (defn monitor-for-failure
   ([master-id] (monitor-for-failure master-id nil 0))
