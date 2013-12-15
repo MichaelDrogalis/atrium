@@ -104,9 +104,9 @@
   (fn [id & _] (println id "heart beats")))
 
 (defn boot! [id]
+  (create-master-place)
+  (create-heart-beat-place id)
   (loop [rendezvous (chan)]
-    (create-master-place)
-    (create-heart-beat-place id)
     (future (stand-by id rendezvous))
     (let [prev-master (<!! rendezvous)]
       (if (elect-self id prev-master)
