@@ -22,7 +22,7 @@
   (str "/" id))
 
 (defn create-master-node []
-  (zk/create client master-node))
+  (zk/create client master-node :persistent? true))
 
 (defn create-pulse-node [id]
   (zk/create client (pulse-node id))
@@ -65,7 +65,7 @@
 
 (with-handler! #'elect-self
   KeeperException$BadVersionException
-  (fn [id version]
+  (fn [e id version]
     (println id "was beat by another node in becoming the master")
     false))
 
@@ -90,7 +90,7 @@
 
 (with-handler! #'beat
   {:precondition :still-master}
-  (fn [id & _] (println id "is not the master anymore. Dying")))
+  (fn [e id _ _] (println id "is not the master anymore. Dying")))
 
 (with-pre-hook! #'stand-by
   (fn [payload ch] (println "On stand-by")))
@@ -99,7 +99,7 @@
   (fn [id version] (println id "is attempting to become the master")))
 
 (with-pre-hook! #'beat
-  (fn [id & _] (println id "heart beats")))
+  (fn [id _ _] (println id "heart beats")))
 
 (defn boot! [id]
   (create-master-node)
