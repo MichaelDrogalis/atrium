@@ -2,7 +2,8 @@
   (:require [clojure.core.async :refer [chan thread <!! >!! timeout]]
             [dire.core :refer [with-pre-hook! with-post-hook! with-precondition! with-handler!]]
             [zookeeper :as zk])
-  (:import [org.apache.zookeeper KeeperException$BadVersionException]))
+  (:import [org.apache.zookeeper KeeperException$BadVersionException]
+           [org.apache.zookeeper KeeperException$NoNodeException]))
 
 (def polling-frequency 1000)
 
@@ -56,6 +57,10 @@
 
 (with-handler! #'stand-by
   clojure.lang.ExceptionInfo
+  trigger-rendezvous)
+
+(with-handler! #'stand-by
+  KeeperException$NoNodeException
   trigger-rendezvous)
 
 (defn elect-self [id version]
