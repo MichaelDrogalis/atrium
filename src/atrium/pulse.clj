@@ -1,7 +1,7 @@
-(ns heart-beat.core
+(ns atrium.pulse
   (:require [clojure.core.async :refer [chan thread <!! >!! timeout]]
-            [dire.core :refer [with-pre-hook! with-post-hook! with-precondition! with-handler!]]
-            [zookeeper :as zk])
+            [zookeeper :as zk]
+            [dire.core :as d])
   (:import [org.apache.zookeeper KeeperException$BadVersionException]
            [org.apache.zookeeper KeeperException$NoNodeException]))
 
@@ -51,15 +51,15 @@
 (defn trigger-rendezvous [e payload ch]
   (>!! ch (:version (:stat payload))))
 
-(with-handler! #'stand-by
+(d/with-handler! #'stand-by
   java.lang.NullPointerException
   trigger-rendezvous)
 
-(with-handler! #'stand-by
+(d/with-handler! #'stand-by
   clojure.lang.ExceptionInfo
   trigger-rendezvous)
 
-(with-handler! #'stand-by
+(d/with-handler! #'stand-by
   KeeperException$NoNodeException
   trigger-rendezvous)
 
@@ -68,13 +68,13 @@
     (zk/set-data client master-node (serialize-edn {:id id}) version)
     true))
 
-(with-handler! #'elect-self
+(d/with-handler! #'elect-self
   KeeperException$BadVersionException
   (fn [e id version]
     (println id "was beat by another node in becoming the master")
     false))
 
-(with-post-hook! #'elect-self
+(d/with-post-hook! #'elect-self
   (fn [_] (println "Mastery acquired.")))
 
 (defn beat [id master {:keys [data stat] :as pulse-data}]
@@ -88,22 +88,22 @@
         (beat id master (zk/data client (pulse-node id))))
       (<!! (timeout pulse-frequency)))))
 
-(with-precondition! #'beat
+(d/with-precondition! #'beat
   :still-master
   (fn [id master pulse-data]
     (= (:id (deserialize-edn (:data master))) id)))
 
-(with-handler! #'beat
+(d/with-handler! #'beat
   {:precondition :still-master}
   (fn [e id _ _] (println id "is not the master anymore. Dying")))
 
-(with-pre-hook! #'stand-by
+(d/with-pre-hook! #'stand-by
   (fn [payload ch] (println "On stand-by")))
 
-(with-pre-hook! #'elect-self
+(d/with-pre-hook! #'elect-self
   (fn [id version] (println id "is attempting to become the master")))
 
-(with-pre-hook! #'beat
+(d/with-pre-hook! #'beat
   (fn [id _ _] (println id "heart beats")))
 
 (defn boot! [id]
@@ -117,7 +117,5 @@
           (heart-beat-process id)
           (recur (chan)))))))
 
-(defn demo []
-  (let [a (str (java.util.UUID/randomUUID))]
-    (boot! a)))
+
 
