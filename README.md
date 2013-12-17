@@ -1,7 +1,7 @@
 # atrium
 
 A Clojure library facilitating distributed heart beats for hot/warm stand-by fault tolerancy.
-Requires a ZooKeeper server.
+Requires a ZooKeeper server and core.async.
 
 ## Usage
 
