@@ -11,6 +11,9 @@
 (defn deserialize-edn [x]
   (read-string (String. x "UTF-8")))
 
+(defn zk-addr [host port]
+  (str host ":" port))
+
 (def pulse-path "/atrium")
 
 (defn pulse-node [id]
@@ -84,7 +87,7 @@
 
 (defn launch! [{:keys [host port id master-path] :as config}]
   (let [user-ch (chan)
-        client (zk/connect (str host ":" port))]
+        client (zk/connect (zk-addr host port))]
     (create-pulse-path client)
     (create-master-node client master-path)
     (create-pulse-node client id)
@@ -98,6 +101,10 @@
                  (>!! user-ch true))
              (recur (chan)))))))
     user-ch))
+
+(defn master [{:keys [host port master-path] :as config}]
+  (let [client (zk/connect (zk-addr host port))]
+    (:id (deserialize-edn (:data (zk/data client master-path))))))
 
 (d/with-precondition! #'beat
   :still-master
