@@ -6,13 +6,14 @@ Requires a ZooKeeper server and core.async.
 ## Usage
 
 ```clojure
-(let [ch (launch! {:host "127.0.0.1"                      ;;; ZooKeeper
-                   :port 2181
-                   :id (str (java.util.UUID/randomUUID))  ;;; Node identifier
-                   :master-path "/master"                 ;;; ZK path to stash the master
-                   :pulse-frequency 800                   ;;; Interval for master heart beat
-                   :polling-frequency 1000})]             ;;; Interval to check for pulse
-  (<!! ch) ;;; Unblocks when this node becomes the master
+(let [ch (launch!
+          {:host "127.0.0.1"                       ;;; ZooKeeper server
+           :port 2181                              
+           :id (str (java.util.UUID/randomUUID))   ;;; Node identifier
+           :master-path "/master"                  ;;; ZK path to stash the master
+           :pulse-frequency 800                    ;;; Interval for master heart beat
+           :polling-frequency 1000})]              ;;; Interval to check for pulse
+  (<!! ch)
   (Thread/sleep 100000)) ;;; Program execution
 ```
 
