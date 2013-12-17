@@ -5,6 +5,8 @@ Requires a ZooKeeper server and core.async.
 
 ## Usage
 
+Node process:
+
 ```clojure
 (let [ch (launch!
           {:host "127.0.0.1"                       ;;; ZooKeeper server
@@ -15,6 +17,14 @@ Requires a ZooKeeper server and core.async.
            :polling-frequency 1000})]              ;;; Interval to check for pulse
   (<!! ch)
   (Thread/sleep 100000)) ;;; Program execution
+```
+
+Master observation:
+
+```clojure
+(master {:host "127.0.0.1"
+         :port 2181
+         :master-path "/master"}) ;;; => "c41a257d-cf49-4559-bc1d-6140461ad31c"
 ```
 
 ## License
